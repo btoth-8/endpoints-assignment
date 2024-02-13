@@ -30,3 +30,4 @@ C:\Users\DELL\Desktop\assignment\endpoints-assignment\EndpointImplementationProj
 C:\Users\DELL\Desktop\assignment\endpoints-assignment\EndpointImplementationProject\obj\Debug\net8.0\EndpointImplementationProject.pdb
 C:\Users\DELL\Desktop\assignment\endpoints-assignment\EndpointImplementationProject\obj\Debug\net8.0\EndpointImplementationProject.genruntimeconfig.cache
 C:\Users\DELL\Desktop\assignment\endpoints-assignment\EndpointImplementationProject\obj\Debug\net8.0\ref\EndpointImplementationProject.dll
+C:\Users\DELL\Desktop\assignment\endpoints-assignment\EndpointImplementationProject\obj\Debug\net8.0\EndpointImplementationProject.sourcelink.json
