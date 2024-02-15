@@ -1,4 +1,4 @@
-## Project Title and Description
+## Project Title
 Solution for Associate Software Engineer Assignment
 
 ## Description
