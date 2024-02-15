@@ -2,7 +2,6 @@
 using EndpointImplementationProject.Services;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace EndpointImplementationProject.Controllers
 {
@@ -10,7 +9,7 @@ namespace EndpointImplementationProject.Controllers
     [ApiController]
     public class ToysController : ControllerBase
     {
-        // GET: api/Toys
+        // GET api/Toys
         [HttpGet]
         public IEnumerable<object> Get()
         {
@@ -19,114 +18,133 @@ namespace EndpointImplementationProject.Controllers
 
 
         // GET api/Toys/5
-        [HttpGet("{id}")]
-        public ActionResult<Toy> Get(int id)
+        [HttpGet("{toyid}")]
+        public ActionResult<Toy> Get(Guid toyid)
         {
-            var toy = ToyStorage.Toys.FirstOrDefault(t => t.ToyId == id);
+            // Find the toy in the ToyStorage in-memory database
+            var toy = ToyStorage.Toys.FirstOrDefault(t => t.ToyId == toyid);
+
             if (toy == null)
             {
-                return NotFound();
+                return NotFound("Toy not found.");
             }
+
             return toy;
-        }
-
-
-        // PUT api/Toys/5
-        [HttpPut("{id}")]
-        public ActionResult Put(int id, [FromBody] Toy updatedToy)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            } 
-            else 
-            {
-                var toy = ToyStorage.Toys.FirstOrDefault(t => t.ToyId == id);
-                if (toy == null)
-                {
-
-                    return NotFound();
-                }
-
-                // Update the toy properties
-                toy.ElementId = updatedToy.ElementId;
-                toy.UserId = updatedToy.UserId;
-                toy.PictureId = updatedToy.PictureId;
-                toy.Description = updatedToy.Description;
-
-                return NoContent();
-            }
         }
 
 
         // POST api/Toys
         [HttpPost]
-        public ActionResult<Toy> Post([FromBody] Toy newToy)
+        public IActionResult AddNewToy(AddNewToyRequest addNewToyRequest)
         {
-            if (!ModelState.IsValid) 
+            if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            else 
-            {
-                // Add the new toy to the storage
-                ToyStorage.Toys.Add(newToy);
 
-                // Return the added toy with a CreatedAtAction status code
-                return CreatedAtAction(nameof(Get), new { id = newToy.ToyId }, newToy);
+            // Create a new Toy object from the AddNewToyRequest
+            var toy = new Toy()
+            {
+                ToyId = Guid.NewGuid(),
+                Description = addNewToyRequest.Description,
+                ElementIds = addNewToyRequest.ElementIds,
+                PictureId = addNewToyRequest.PictureId,
+                UserId = addNewToyRequest.UserId
+            };
+
+            ToyStorage.Toys.Add(toy);
+
+            return Ok(toy);
+        }
+
+
+        // PUT api/Toys/5
+        [HttpPut("{toyId}")]
+        public ActionResult Put(Guid toyId, [FromBody] ToyUpdateDto updatedToy)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
             }
+
+            var toy = ToyStorage.Toys.FirstOrDefault(t => t.ToyId == toyId);
+
+            if (toy == null)
+            {
+                return NotFound("Toy not found.");
+            }
+
+            toy.ElementIds = updatedToy.ElementIds;
+            toy.PictureId = updatedToy.PictureId;
+            toy.Description = updatedToy.Description;
+
+            return Ok(toy);
         }
 
 
         // DELETE api/Toys/5
-        [HttpDelete("{id}")]
-        public ActionResult Delete(int id)
+        [HttpDelete("{toyid}")]
+        public ActionResult Delete(Guid toyid)
         {
-            var toy = ToyStorage.Toys.FirstOrDefault(t => t.ToyId == id);
+            var toy = ToyStorage.Toys.FirstOrDefault(t => t.ToyId == toyid);
             
             if (toy == null) 
             {
-                return NotFound();
+                return NotFound("Toy not found.");
             }
 
             ToyStorage.Toys.Remove(toy);
-            return NoContent();
+
+            return Ok(new { Message = "Toy successfully deleted." });
         }
 
 
-        // GET api/Toys/SearchByElement/{elementId}
-        [HttpGet("SearchByElement/{elementId}")]
-        public ActionResult<IEnumerable<Toy>> SearchByElement(string elementId)
+        // GET api/Toys/SearchByElements?elementIds=element1&elementIds=element2
+        [HttpGet("SearchByElements")]
+        public ActionResult<IEnumerable<Toy>> SearchByElements([FromQuery] List<string> elementIds)
         {
-            var toys = ToyStorage.Toys.Where(t => t.ElementId == elementId).ToList();
-            
-            if (toys.Count == 0) 
+            // Find the toys in ToyStorage in-memory database that contain any of the given elementIds in their ElementIds list
+            var toys = ToyStorage.Toys.Where(t => t.ElementIds.Intersect(elementIds).Any()).ToList();
+
+            if (toys.Count == 0)
             {
-                return NotFound();
+                return NotFound("No toys found matching the provided elements.");
             }
+
             return toys;
         }
 
 
         // PUT api/Toys/5/Score
-        [HttpPut("{id}/Score")]
-        public ActionResult Score(int id, [FromBody] Score score)
+        [HttpPut("{toyId}/Score")]
+        public ActionResult Score(Guid toyId, [FromBody] Score score)
         {
-            if (!ModelState.IsValid) 
+
+            if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
-            } 
-            else 
-            {
-                var toy = ToyStorage.Toys.FirstOrDefault(t => t.ToyId == id);
-                if (toy == null) {
-
-                    return NotFound();
-                }
-
-                toy.Scores.Add(score);
-                return NoContent();
             }
+
+            // Get the authenticated user's ID (currently mock userId)
+            var authenticatedUserId = "user-0";
+
+            // Prevent the owner of the toy from scoring their own toy
+            if (authenticatedUserId == score.UserId)
+            {
+                return Forbid("You cannot score your own toy.");
+            }
+
+            var toy = ToyStorage.Toys.FirstOrDefault(t => t.ToyId == toyId);
+
+            if (toy == null)
+            {
+                return NotFound("Toy not found.");
+            }
+
+            toy.Scores.Add(score);
+
+            return Ok(toy);
         }
+
     }
 }

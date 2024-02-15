@@ -5,26 +5,53 @@ namespace EndpointImplementationProject.Models
     public class Toy
     {
         [Required]
-        public int ToyId { get; set; }
+        public Guid ToyId { get; set; }
         [Required]
-        public required string ElementId { get; set; }
+        public List<string> ElementIds { get; set; } = new List<string>();
         [Required]
-        public required string UserId { get; set; }
+        public string? UserId { get; set; }
         [Required]
-        public required string PictureId { get; set; }
+        public string? PictureId { get; set; }
         [Required]
         [MaxLength(255)]
-        public required string Description { get; set; }
+        public string? Description { get; set; }
         public List<Score> Scores { get; set; } = new List<Score>();
+    }
+
+    public class AddNewToyRequest
+    {
+        [Required]
+        public List<string> ElementIds { get; set; } = new List<string>();
+        [Required]
+        public string? UserId { get; set; }
+        [Required]
+        public string? PictureId { get; set; }
+        [Required]
+        [MaxLength(255)]
+        public string? Description { get; set; }
+        public List<Score> Scores { get; set; } = new List<Score>();
+    }
+
+    public class ToyUpdateDto
+    {
+        [Required]
+        public List<string> ElementIds { get; set; } = new List<string>();
+        [Required]
+        public string? PictureId { get; set; }
+        [Required]
+        [MaxLength(255)]
+        public string? Description { get; set; }
     }
 
     public class Score
     {
         [Required]
-        public required string UserId { get; set; }
+        public string? UserId { get; set; }
         [Required]
+        [Range(1, 5)]
         public int CreativityScore { get; set; }
         [Required]
+        [Range(1, 5)]
         public int UniquenessScore { get; set; }
     }
 }
